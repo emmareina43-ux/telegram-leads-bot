@@ -3,8 +3,14 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-TELEGRAM_TOKEN = "8392567454:AAERXi9efycfhudrw340ofi04st6Dfcnt9A"   # <-- pune tokenul REAL aici
-CHAT_ID = "716093979"  # chat id-ul tau
+# 🔥 Pune tokenul TAU aici (doar tu îl vezi)
+TELEGRAM_TOKEN = "8392567454:AAERXi9efycfhudrw340ofi04st6Dfcnt9A"
+
+# 🔥 Chat ID-ul tau
+CHAT_ID = "716093979"
+
+# 🔥 Verify token-ul pe care îl pui SI in Facebook Webhooks
+VERIFY_TOKEN = "beezpixel123"
 
 def send_message(text):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -15,6 +21,19 @@ def send_message(text):
     }
     requests.post(url, json=payload)
 
+# ✔ Facebook verifică webhook-ul prin GET — asta era lipsă
+@app.route("/webhook", methods=["GET"])
+def verify():
+    mode = request.args.get("hub.mode")
+    token = request.args.get("hub.verify_token")
+    challenge = request.args.get("hub.challenge")
+
+    if mode == "subscribe" and token == VERIFY_TOKEN:
+        return challenge, 200
+    else:
+        return "Verification token mismatch", 403
+
+# ✔ Facebook trimite leadurile prin POST
 @app.route("/webhook", methods=["POST"])
 def webhook():
     data = request.json
